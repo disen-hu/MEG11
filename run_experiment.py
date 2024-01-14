@@ -44,7 +44,10 @@ if __name__ == '__main__':
         # initialize wandb
         if config['log'] in ['wandb', 'all']:
             print('Input wandb run name for intra-subject run:')
-            run_name = input()
+            if(config["name"]):
+                run_name=config["name"]
+            else:
+                run_name = input()
             run_name = 'intra_'+run_name
             config['run_name'] = run_name
             wandb.init(entity='deceminc',project='pr', config=config, name = run_name)
