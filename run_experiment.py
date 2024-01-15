@@ -51,10 +51,13 @@ if __name__ == '__main__':
         # initialize wandb
         if config['log'] in ['wandb', 'all']:
             print('Input wandb run name for intra-subject run:')
-            run_name = input()
+            if(config["name"]):
+                run_name=config["name"]
+            else:
+                run_name = input()
             run_name = 'intra_'+run_name
             config['run_name'] = run_name
-            wandb.init(project='MEG', config=config, name = run_name)
+            wandb.init(entity = 'deceminc', project='pr', config=config, name = run_name)
 
         # Extract test and training data from the dataset
         X_train, y_train = data['intra']['X_train'], data['intra']['y_train']
@@ -128,7 +131,7 @@ if __name__ == '__main__':
                 run_name = input()
             run_name = 'cross_'+run_name
             config['run_name'] = run_name
-            wandb.init(project='MEG', config=config, name = run_name)
+            wandb.init(entity = 'deceminc', project='pr', config=config, name = run_name)
         
         # Extract test and training data from the dataset
         X_train, y_train = data['cross']['X_train'], data['cross']['y_train']
