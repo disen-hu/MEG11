@@ -1,8 +1,8 @@
 model: LSTMNet
-data_dir: C:\Users\disen\Desktop\PRproject\Final Project data\Final Project data #D:\Misc Coding Projects\MegDNN\Final Project data #/Users/timofeysenchenko/UU/projects/MEG/MEGDNN/Final Project data
+data_dir: C:\Users\disen\Desktop\PRproject\Final Project data\Final Project data 
 log: wandb
 wandb_api_key: adeb2c72bdb4d569ebb9cc40c9129260f5beac58  #4db50afc0625bffece93d0ab9edb0e63c4728018
-validation: [cross]
+validation: [intra]
 n_sensors: 248
 n_timesteps: 35624
 downsample: 5
@@ -15,11 +15,15 @@ negative_slope: 0.01
 pooling_size: 2
 num_classes: 4
 n_layers: 5
+save_best: True
+target_metric: accuracy
 lr: 0.001
 warmup_epochs: 5
-epochs: 15
+epochs: 20
 steps_per_epoch: 2
 batch_size: 16
 lstm_hidden: 50
-name: contra
+name: lstm
+log_best: True
+error_analysis: True 
 #

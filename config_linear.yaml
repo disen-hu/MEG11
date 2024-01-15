@@ -2,7 +2,7 @@ model: MEGNet # MEGNet, MEGConvNet
 data_dir: C:\Users\disen\Desktop\PRproject\Final Project data\Final Project data
 log: wandb  # wandb, stdout, both
 wandb_api_key: adeb2c72bdb4d569ebb9cc40c9129260f5beac58
-validation: [cross] # [cross, intra], [cross], [intra]
+validation: [intra] # [cross, intra], [cross], [intra]
 save_best: True # save model based on best validation set score
 target_metric: accuracy  # save based on: accuracy / f1
 log_best: True # log best score in the end of the run
@@ -21,5 +21,5 @@ warmup_epochs: 5
 epochs: 25
 steps_per_epoch: 2
 batch_size: 16
-name: cons
+name: linear
 #

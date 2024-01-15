@@ -38,6 +38,9 @@ if __name__ == '__main__':
     if not os.path.exists('weights'):
         os.makedirs('weights')
 
+    required_keys = ['X_train', 'y_train', 'X_test', 'y_test']
+    if not all(key in data['intra'] for key in required_keys):
+        raise ValueError("Missing required data in 'intra'")
 
     # preprocess data and train model on intra-subject data
     if 'intra' in config['validation']:

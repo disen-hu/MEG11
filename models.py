@@ -40,6 +40,7 @@ class MEGNet(pl.LightningModule):
         self.val_progress = []
         self.best_acc = 0.0
         self.best_f1 = 0.0
+        print("linear model initialized successfully")
 
     def forward(self, x):
         """
@@ -265,6 +266,7 @@ class LSTMNet(pl.LightningModule):
         super(LSTMNet, self).__init__()
         self.config = config
 
+
         # calculates input size for the final fully connected layer
         if config['window_size'] != -1:
             input_size = config['window_size']
@@ -293,8 +295,11 @@ class LSTMNet(pl.LightningModule):
             ]
             in_channels = config['out_channels']
         self.conv_layers = nn.Sequential(*layers)
+        self.lstm = nn.LSTM(input_size=fc_input_size, hidden_size=config['lstm_hidden'], num_layers=1, batch_first=True)
+
 
         self.fc = nn.Linear(fc_input_size, config['num_classes'])
+        self.fc = nn.Linear(config['lstm_hidden'], config['num_classes'])
         
         # defines loss criterion and initialises variables for training curves
         self.train_loss = 0.0
@@ -308,8 +313,9 @@ class LSTMNet(pl.LightningModule):
         Performs a forward pass of the defined neural network.
         """
         x = self.conv_layers(x)
-        x = torch.flatten(x, 1)
-        x = self.lstm(x)
+        x = x.permute(0, 2, 1)
+        lstm_output, _ = self.lstm(x)
+        x = lstm_output[:, -1, :]
         x = self.fc(x)
         return x
 
