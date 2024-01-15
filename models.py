@@ -4,6 +4,8 @@ import torch.nn.functional as F
 import pytorch_lightning as pl
 from sklearn.metrics import precision_recall_fscore_support
 import wandb
+from torch.autograd import Variable
+
 
 class MEGNet(pl.LightningModule):
     """
@@ -40,7 +42,6 @@ class MEGNet(pl.LightningModule):
         self.val_progress = []
         self.best_acc = 0.0
         self.best_f1 = 0.0
-        print("linear model initialized successfully")
 
     def forward(self, x):
         """
@@ -266,26 +267,34 @@ class LSTMNet(pl.LightningModule):
         super(LSTMNet, self).__init__()
         self.config = config
 
-
         # calculates input size for the final fully connected layer
         if config['window_size'] != -1:
-            input_size = config['window_size']
+            input_size = config['window_size'] 
         else:
             input_size = config['n_timesteps']//config['downsample']
         
-        current_size = input_size
+        self.hidden_size = config['lstm_hidden_size']
+        self.lstm = nn.LSTM(input_size= config['n_sensors'],
+                            hidden_size= self.hidden_size,
+                            num_layers = 1,
+                            batch_first =True
+                            )
+        virtual_input_sequence = torch.randn(config['batch_size'], input_size, config['n_sensors'])
+        lstm_output, _ = self.lstm(virtual_input_sequence)
+        lstm_output_size = lstm_output.size()
+
+        current_size = lstm_output_size[1]
         for _ in range(config['n_layers']):
             # calculates the size after convolution
             current_size = ((current_size - config['kernel_size'] + 2 * config['padding']) // config['stride']) + 1
             # calculates the size after max pooling
             current_size = (current_size - config['pooling_size']) // config['pooling_size'] + 1
-        
         # calculates the input size for the fully connected layer
         fc_input_size = current_size * config['out_channels']
 
         # defines convolutional layers
         layers = []
-        in_channels = config['n_sensors']
+        in_channels = self.hidden_size
         for _ in range(config['n_layers']):
             layers += [
                 nn.Conv1d(in_channels, config['out_channels'], config['kernel_size'], stride=config['stride'], padding=config['padding']),
@@ -295,11 +304,8 @@ class LSTMNet(pl.LightningModule):
             ]
             in_channels = config['out_channels']
         self.conv_layers = nn.Sequential(*layers)
-        self.lstm = nn.LSTM(input_size=fc_input_size, hidden_size=config['lstm_hidden'], num_layers=1, batch_first=True)
-
 
         self.fc = nn.Linear(fc_input_size, config['num_classes'])
-        self.fc = nn.Linear(config['lstm_hidden'], config['num_classes'])
         
         # defines loss criterion and initialises variables for training curves
         self.train_loss = 0.0
@@ -312,10 +318,13 @@ class LSTMNet(pl.LightningModule):
         """
         Performs a forward pass of the defined neural network.
         """
+        # h_0 = Variable(torch.randn(1, x.size(0), self.hidden_size, device="cuda:0")) 
+        # c_0 = Variable(torch.randn(1, x.size(0), self.hidden_size, device="cuda:0"))
+        x,_ = self.lstm(x)
+        x = x.transpose(1,2)
         x = self.conv_layers(x)
-        x = x.permute(0, 2, 1)
-        lstm_output, _ = self.lstm(x)
-        x = lstm_output[:, -1, :]
+        x = x.transpose(1,2)
+        x = torch.flatten(x, 1)
         x = self.fc(x)
         return x
 
