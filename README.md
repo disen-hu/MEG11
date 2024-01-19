@@ -1,10 +1,10 @@
 # MEGDNN
 
-To start with the code you should first look at the run experiment file. 
+This repo include the training code of MEG data within using ConvNet and LSTM.
 
-run with # python run_exeriment.py --config config_***.yaml
+To run this python file. 
+
+python 
 
 
-"# MEG" 
-"# MEG11" 
-"# MEG11" 
+

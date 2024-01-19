@@ -1,11 +1,10 @@
 model: LSTMNet
-data_dir: C:\Users\disen\Desktop\PRproject\Final Project data\Final Project data 
-log: wandb
-wandb_api_key: adeb2c72bdb4d569ebb9cc40c9129260f5beac58  
-validation: [intra]
-save_best: True # save model based on best validation set score
-target_metric: accuracy  # save based on: accuracy / f1
-log_best: True # log best score in the end of the run
+data_dir: C:\Users\disen\Desktop\PRproject\data\data 
+
+validation: [cross]
+save_best: True 
+target_metric: accuracy  
+log_best: True 
 error_analysis: False 
 n_sensors: 248 
 n_timesteps: 35624
@@ -21,9 +20,10 @@ num_classes: 4
 n_layers: 4
 lr: 0.0002
 warmup_epochs: 5
-epochs: 60
+epochs: 5
 steps_per_epoch: 2
 batch_size: 8
-lstm_hidden_size: 800
-name: lstm
+lstm_hidden_size: 100
+run_name: 1
+name: lstm_disen
 #

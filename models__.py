@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
 from sklearn.metrics import precision_recall_fscore_support
+import wandb
 from torch.autograd import Variable
 
 
@@ -100,10 +101,10 @@ class MEGConvNet(pl.LightningModule):
         # 在训练周期结束时计算准确率
         acc = torch.sum(self.train_preds == self.train_labels).item() / len(self.train_labels)
         if self.config['log'] in ['wandb', 'all']:
-#             wandb.log({'train_acc': acc})
+            wandb.log({'train_acc': acc})
         
-         if self.config['log'] in ['stdout', 'all']:
-               print(f'Training accuracy: {acc}')
+        if self.config['log'] in ['stdout', 'all']:
+            print(f'Training accuracy: {acc}')
 
         # 重置变量以进行下一个周期
         delattr(self, 'train_preds')
@@ -140,9 +141,9 @@ class MEGConvNet(pl.LightningModule):
 
         # log metrics based on configuration settings
         if self.config['log'] in ['wandb', 'all']:
-#             wandb.log({'train_loss': self.train_loss, 'val_loss': self.val_loss, 'val_acc': acc, 'val_precision': precision, 'val_recall': recall, 'val_f1': f1})
+            wandb.log({'train_loss': self.train_loss, 'val_loss': self.val_loss, 'val_acc': acc, 'val_precision': precision, 'val_recall': recall, 'val_f1': f1})
         
-         if self.config['log'] in ['stdout', 'all']:
+        if self.config['log'] in ['stdout', 'all']:
             print(f'Training loss: {self.train_loss}')
             print(f'Validation accuracy: {acc}')
             print(f'Validation loss: {self.val_loss}')
@@ -271,11 +272,11 @@ class LSTMNet(pl.LightningModule):
     def on_train_epoch_end(self):
         # 在训练周期结束时计算准确率
         acc = torch.sum(self.train_preds == self.train_labels).item() / len(self.train_labels)
-#         if self.config['log'] in ['wandb', 'all']:
-# #             wandb.log({'train_acc': acc})
+        if self.config['log'] in ['wandb', 'all']:
+            wandb.log({'train_acc': acc})
         
-#          if self.config['log'] in ['stdout', 'all']:
-#             print(f'Training accuracy: {acc}')
+        if self.config['log'] in ['stdout', 'all']:
+            print(f'Training accuracy: {acc}')
 
         # 重置变量以进行下一个周期
         delattr(self, 'train_preds')
@@ -311,27 +312,25 @@ class LSTMNet(pl.LightningModule):
         precision, recall, f1, _ = precision_recall_fscore_support(y.cpu(), preds.cpu(), average='macro')
 
         # log metrics based on configuration settings
-#         if self.config['log'] in ['wandb', 'all']:
-# #             wandb.log({'train_loss': self.train_loss, 'val_loss': self.val_loss, 'val_acc': acc, 'val_precision': precision, 'val_recall': recall, 'val_f1': f1})
+        if self.config['log'] in ['wandb', 'all']:
+            wandb.log({'train_loss': self.train_loss, 'val_loss': self.val_loss, 'val_acc': acc, 'val_precision': precision, 'val_recall': recall, 'val_f1': f1})
         
-#          if self.config['log'] in ['stdout', 'all']:
-#             print(f'Training loss: {self.train_loss}')
-#             print(f'Validation accuracy: {acc}')
-#             print(f'Validation loss: {self.val_loss}')
-#             print(f'Validation precision: {precision}')
-#             print(f'Validation recall: {recall}')
-#             print(f'Validation f1: {f1}')
+        if self.config['log'] in ['stdout', 'all']:
+            print(f'Training loss: {self.train_loss}')
+            print(f'Validation accuracy: {acc}')
+            print(f'Validation loss: {self.val_loss}')
+            print(f'Validation precision: {precision}')
+            print(f'Validation recall: {recall}')
+            print(f'Validation f1: {f1}')
         
         # saved best model, based on chosen target metric if save_best is set to True
         if self.config['save_best']:
             if self.config['target_metric'] == 'accuracy' and acc > self.best_acc:
                 self.best_acc = acc
-                save_checkpoint(self, 'weights/' + str(self.config['run_name']) + '.pth')
-
+                save_checkpoint(self, 'weights/'+self.config['run_name']+'.pth')
             elif self.config['target_metric'] == 'f1' and f1 > self.best_f1:
                 self.best_f1 = f1
-                save_checkpoint(self, 'weights/' + str(self.config['run_name']) + '.pth')
-
+                save_checkpoint(self, 'weights/'+self.config['run_name']+'.pth')
         
          # reset variables for next epoch
         self.val_progress = []

@@ -6,7 +6,6 @@ import pytorch_lightning as pl
 import torch
 import numpy as np
 import argparse
-import wandb
 import yaml
 from time import time
 import os
@@ -32,16 +31,14 @@ if __name__ == '__main__':
     }
     decoder_dict = {v: k for k, v in encoder_dict.items()}
 
-    # login to wandb via API key
-    if config['log'] in ['wandb', 'all']:
-        wandb.login(key = config['wandb_api_key'])
+    
     
     # check if folder 'weights' exists and create if not
     if not os.path.exists('weights'):
         os.makedirs('weights')
 
     if torch.cuda.is_available(): 
-        device = torch.device("cuda:1")
+        device = torch.device("cuda:0")
         print(f"GPU available: {device}")
     else:
         device = torch.device("cpu")
@@ -57,7 +54,6 @@ if __name__ == '__main__':
                 run_name = input()
             run_name = 'intra_'+run_name
             config['run_name'] = run_name
-            wandb.init(entity = 'deceminc', project='pr', config=config, name = run_name)
 
         # Extract test and training data from the dataset
         X_train, y_train = data['intra']['X_train'], data['intra']['y_train']
@@ -110,28 +106,18 @@ if __name__ == '__main__':
         start = time()
         trainer.fit(model, train_loader, val_loader)
         end = time()
-        wandb.log({'INTRA training_time': end - start, 'INTRA average train+val time per epoch': (end - start) / config['epochs']})
+        print({'INTRA training_time': end - start, 'INTRA average train+val time per epoch': (end - start) / config['epochs']})
         if config['log_best']:
             if config['target_metric'] == 'accuracy':
-                wandb.log({'INTRA best accuracy': model.best_acc})
+                print({'INTRA best accuracy': model.best_acc})
             elif config['target_metric'] == 'f1':
-                wandb.log({'INTRA best f1': model.best_f1})
+                print({'INTRA best f1': model.best_f1})
         if not config['save_best']:
             save_checkpoint(model, 'weights/'+run_name+'.pth')
-        wandb.finish()
+#         wandb.finish()
     
     # preprocess data and train model on cross-subject data
     if 'cross' in config['validation']:
-        if config['log'] in ['wandb', 'all']:
-            # initialize wandb
-            print('Input wandb run name for cross-subject run:')
-            if(config["name"]):
-                run_name=config["name"]
-            else:
-                run_name = input()
-            run_name = 'cross_'+run_name
-            config['run_name'] = run_name
-            wandb.init(entity = 'deceminc', project='pr', config=config, name = run_name)
         
         # Extract test and training data from the dataset
         X_train, y_train = data['cross']['X_train'], data['cross']['y_train']
@@ -194,14 +180,14 @@ if __name__ == '__main__':
         trainer.fit(model, train_loader, val_loader)
         end = time()
         # logs average training time per epoch and total training time
-        wandb.log({'CROSS training_time': end - start, 'CROSS average train+val time per epoch': (end - start) / config['epochs']})
+        print({'CROSS training_time': end - start, 'CROSS average train+val time per epoch': (end - start) / config['epochs']})
 
         # logs best accuracy or f1 score
         if config['log_best']:
             if config['target_metric'] == 'accuracy':
-                wandb.log({'CROSS best accuracy': model.best_acc})
+                print({'CROSS best accuracy': model.best_acc})
             elif config['target_metric'] == 'f1':
-                wandb.log({'CROSS best f1': model.best_f1})
+                print({'CROSS best f1': model.best_f1})
         if not config['save_best']:
             save_checkpoint(model, 'weights/'+run_name+'.pth')
         
@@ -211,4 +197,4 @@ if __name__ == '__main__':
             if config['save_best']:
                 load_checkpoint(model, 'weights/'+run_name+'.pth')
             error_analysis(model, data, encoder_dict, config)
-        wandb.finish()
+#         wandb.finish()
